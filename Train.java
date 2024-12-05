@@ -80,9 +80,9 @@ public class Train {
     }
 
     // Methods
-    public static void getSchedule(Connection conn) {
+    public static String getSchedule(Connection conn) {
         String query = "SELECT trainID, departure, arrival, route_start, route_end FROM Train";
-        
+        StringBuilder output = new StringBuilder();
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             // Set the trainID parameter
 
@@ -93,18 +93,28 @@ public class Train {
                 System.out.println("Departure: " + rs.getTime("departure"));
                 System.out.println("Arrival: " + rs.getTime("arrival"));
                 System.out.println("------------------------------");
+
+                output.append(rs.getString("TrainID")).append(" ").append(rs.getString("route_start")).append(" ")
+                .append(rs.getString("route_end")).append(" ").append(rs.getTime("departure")).append(" ").append(rs.getTime("arrival"))
+                .append(" ,");
             }
+            // Close the ResultSet
+            rs.close();
+            
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("Error fetching the train schedule.");
         }
+        //String output = rs.getString("trainID")+" "+rs.getString("route_start") + " " + rs.getString("route_end")+rs.getTime("departure")+rs.getTime("arrival");
+        return output.toString();
     }
 
     public boolean checkAvailability(String coachType) {
         return availableClasses.contains(coachType);
     }
-    public static void printAvailableClasses(Connection conn, String trainID) {
+    public static String printAvailableClasses(Connection conn, String trainID) {
         String query = "SELECT coachtypes FROM Train WHERE trainID = ?";
+        StringBuilder output = new StringBuilder();
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, trainID);
 
@@ -112,14 +122,16 @@ public class Train {
             System.out.println("Available Coaches for Train " + trainID);
             if (!resultSet.isBeforeFirst()) { // Check if the cursor is before the first row
                 System.out.println("The ResultSet is empty. No rows found.");
-                return;
             }
             while (resultSet.next()) {
                 System.out.println("- " + resultSet.getString("coachtypes"));
+                output.append(resultSet.getString("coachtypes"));
             }
+            System.out.println(output.toString()); //just to see the output
         } catch (SQLException e) {
             System.out.println("Error fetching available classes for Train ID: " + trainID);
             e.printStackTrace();
         }
+        return output.toString();
     }
 }
