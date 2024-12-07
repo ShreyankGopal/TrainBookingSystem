@@ -138,7 +138,12 @@ public class Main {
                         }
                         else{
                             user=new Passenger2();
-                            user.login(conn);
+                            System.out.print("Enter Email: ");
+                            String inputEmail = sc.nextLine();
+                
+                            System.out.print("Enter Password: ");
+                            String inputPassword = sc.nextLine();
+                            user.login(conn,inputEmail,inputPassword);
                         }
                         break;
                         
@@ -175,7 +180,12 @@ public class Main {
                         }
                         else{
                             adminUser = new Admin();
-                            adminUser.login(conn);
+                            System.out.print("Enter Email: ");
+                            String inputEmail = sc.nextLine();
+                
+                            System.out.print("Enter Password: ");
+                            String inputPassword = sc.nextLine();
+                            adminUser.login(conn,inputEmail,inputPassword);
                         }
                         break;
                     case 10:

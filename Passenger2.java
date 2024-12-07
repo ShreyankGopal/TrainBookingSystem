@@ -1,35 +1,36 @@
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.sql.Statement;
 
 public class Passenger2 extends User {
     private int passengerID;
     private int age;
-    private String gender; 
+    private String gender;
     private List<String> bookingHistory;
 
     // Constructor
-    public Passenger2(int passengerID, int userID, String name, String email, String phone, String password,int age, String gender) {
+    public Passenger2(int passengerID, int userID, String name, String email, String phone, String password, int age, String gender) {
         super(userID, name, email, phone, password);
         this.passengerID = passengerID;
         this.age = age;
         this.gender = gender;
         this.bookingHistory = new ArrayList<>();
     }
-    public Passenger2(){
-        super();
 
+    public Passenger2() {
+        super();
     }
 
     // Getters and Setters
     public int getPassengerID() {
         return passengerID;
     }
+
+    public void setPassengerID(int passengerID) {
+        this.passengerID = passengerID;
+    }
+
     public int getAge() {
         return age;
     }
@@ -46,62 +47,56 @@ public class Passenger2 extends User {
         this.gender = gender;
     }
 
-    public void setPassengerID(int passengerID) {
-        this.passengerID = passengerID;
-    }
-
     public List<String> getBookingHistory() {
         return bookingHistory;
     }
 
     // Overridden login method
     @Override
-    public void login(Connection conn) {
-        Scanner scanner = new Scanner(System.in);
+    public boolean login(Connection conn,String email, String Password) {
+        try  {
 
-        System.out.print("Enter Email: ");
-        String inputEmail = scanner.nextLine();
 
-        System.out.print("Enter Password: ");
-        String inputPassword = scanner.nextLine();
+            String query = "SELECT * FROM User u JOIN Passenger p ON u.userID = p.userID WHERE u.email = ? AND u.password = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+                pstmt.setString(1, email);
+                pstmt.setString(2, Password);
 
-        String query = "SELECT * FROM User u JOIN Passenger p ON u.userID = p.userID WHERE u.email = ? AND u.password = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, inputEmail);
-            pstmt.setString(2, inputPassword);
+                ResultSet resultSet = pstmt.executeQuery();
+                if (resultSet.next()) {
+                    this.setUserID(resultSet.getInt("userID"));
+                    this.setPassengerID(resultSet.getInt("passengerID"));
+                    this.setName(resultSet.getString("name"));
+                    this.setEmail(resultSet.getString("email"));
+                    this.setPhone(resultSet.getString("phone"));
+                    this.setPassword(resultSet.getString("password"));
+                    this.setAge(resultSet.getInt("age"));
+                    this.setGender(resultSet.getString("gender"));
+                    this.setActive(1);
 
-            ResultSet resultSet = pstmt.executeQuery();
-            if (resultSet.next()) {
-                this.setUserID(resultSet.getInt("userID"));
-                this.setPassengerID(resultSet.getInt("passengerID"));
-                this.setName(resultSet.getString("name"));
-                this.setEmail(resultSet.getString("email"));
-                this.setPhone(resultSet.getString("phone"));
-                this.setPassword(resultSet.getString("password"));
-                this.setAge(resultSet.getInt("age"));
-                this.setGender(resultSet.getString("gender"));
-                this.setActive(1);
-                this.passengerID = resultSet.getInt("passengerID");
+                    String updateActiveQuery = "UPDATE User SET active = 1 WHERE userID = ?";
+                    try (PreparedStatement updateStmt = conn.prepareStatement(updateActiveQuery)) {
+                        updateStmt.setInt(1, this.getUserID());
+                        updateStmt.executeUpdate();
+                    }
 
-                String updateActiveQuery = "UPDATE User SET active = 1 WHERE userID = ?";
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateActiveQuery)) {
-                    updateStmt.setInt(1, this.getUserID());
-                    updateStmt.executeUpdate();
+                    System.out.println("Passenger login successful! Welcome, " + this.getName() + ".");
+                    return true;
+                } else {
+                    this.setActive(0);
+                    System.out.println("Invalid email or password.");
+                    return false;
                 }
-
-                System.out.println("Passenger login successful! Welcome, " + this.getName() + ".");
-            } else {
-                this.setActive(0);
-                System.out.println("Invalid email or password.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     // Overridden logout method
     @Override
-    public void logout(Connection conn) {
+    public boolean logout(Connection conn) {
         if (this.getActive() == 1) {
             this.setActive(0);
 
@@ -113,60 +108,59 @@ public class Passenger2 extends User {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            return true;
         } else {
             System.out.println("Passenger is not logged in.");
+            return false;
         }
     }
+
     @Override
-    public void addUserToDatabase(Connection conn) {
+    public boolean addUserToDatabase(Connection conn) {
         String userInsertQuery = "INSERT INTO User (name, email, phone, password, active) VALUES (?, ?, ?, ?, ?)";
         String passengerInsertQuery = "INSERT INTO Passenger (userID, age, gender) VALUES (?, ?, ?)";
         try {
             // Insert into User table
             try (PreparedStatement userStmt = conn.prepareStatement(userInsertQuery, Statement.RETURN_GENERATED_KEYS)) {
-                
-                // Adjust the parameter indices to match the correct order
-                userStmt.setString(1, this.getName());   // name
-                userStmt.setString(2, this.getEmail());  // email
-                userStmt.setString(3, this.getPhone());     // phone
-                userStmt.setString(4, this.getPassword()); // password
-                userStmt.setInt(5, this.getActive());    // active
-    
+                userStmt.setString(1, this.getName());
+                userStmt.setString(2, this.getEmail());
+                userStmt.setString(3, this.getPhone());
+                userStmt.setString(4, this.getPassword());
+                userStmt.setInt(5, this.getActive());
+
                 int rowsInsertedUser = userStmt.executeUpdate();
                 if (rowsInsertedUser > 0) {
-                    System.out.println("User added successfully!");
-    
-                    // Retrieve the generated userID from the inserted user
                     ResultSet generatedKeys = userStmt.getGeneratedKeys();
                     if (generatedKeys.next()) {
-                        int generatedUserID = generatedKeys.getInt(1);
-                        this.setUserID(generatedUserID);
+                        this.setUserID(generatedKeys.getInt(1));
                     }
                 } else {
                     System.out.println("Failed to add user.");
-                    return; // Abort if user insertion fails
+                    return false;
                 }
             }
-    
-            // Insert into Passenger table with age and gender
+
+            // Insert into Passenger table
             try (PreparedStatement passengerStmt = conn.prepareStatement(passengerInsertQuery)) {
-                
-                passengerStmt.setInt(1, this.getUserID());  // userID
-                passengerStmt.setInt(2, this.getAge());     // age
-                passengerStmt.setString(3, String.valueOf(this.getGender())); // gender
-    
+                passengerStmt.setInt(1, this.getUserID());
+                passengerStmt.setInt(2, this.getAge());
+                passengerStmt.setString(3, String.valueOf(this.getGender()));
+
                 int rowsInsertedPassenger = passengerStmt.executeUpdate();
                 if (rowsInsertedPassenger > 0) {
                     System.out.println("Passenger added successfully!");
+                    return true;
                 } else {
                     System.out.println("Failed to add passenger.");
+                    return false;
                 }
             }
-    
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
+
     public void printCredential() {
         System.out.println("Passenger Credentials:");
         System.out.println("Name: " + this.getName());
@@ -222,6 +216,4 @@ public class Passenger2 extends User {
             e.printStackTrace();
         }
     }
-    
-    
 }

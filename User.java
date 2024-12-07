@@ -73,7 +73,7 @@ public class User {
     }
 
     // Add the user to the database
-    public void addUserToDatabase(Connection conn) {
+    public boolean addUserToDatabase(Connection conn) {
         String insertQuery = "INSERT INTO User (name, email, phone, password, active) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
             
@@ -92,50 +92,52 @@ public class User {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return true;
     }
 
     // Login method
-    public void login(Connection conn) {
-        Scanner scanner = new Scanner(System.in);
+    public boolean login(Connection conn,String email,String Password) {
+        // Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Enter Email: ");
-        String inputEmail = scanner.nextLine();
+        // System.out.print("Enter Email: ");
+        // String inputEmail = scanner.nextLine();
 
-        System.out.print("Enter Password: ");
-        String inputPassword = scanner.nextLine();
+        // System.out.print("Enter Password: ");
+        // String inputPassword = scanner.nextLine();
 
-        String query = "SELECT * FROM User WHERE email = ? AND password = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, inputEmail);
-            pstmt.setString(2, inputPassword);
+        // String query = "SELECT * FROM User WHERE email = ? AND password = ?";
+        // try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+        //     pstmt.setString(1, inputEmail);
+        //     pstmt.setString(2, inputPassword);
 
-            ResultSet resultSet = pstmt.executeQuery();
-            if (resultSet.next()) {
-                this.userID = resultSet.getInt("userID");
-                this.name = resultSet.getString("name");
-                this.email = resultSet.getString("email");
-                this.phone = resultSet.getString("phone");
-                this.password = resultSet.getString("password");
-                this.active = 1;
+        //     ResultSet resultSet = pstmt.executeQuery();
+        //     if (resultSet.next()) {
+        //         this.userID = resultSet.getInt("userID");
+        //         this.name = resultSet.getString("name");
+        //         this.email = resultSet.getString("email");
+        //         this.phone = resultSet.getString("phone");
+        //         this.password = resultSet.getString("password");
+        //         this.active = 1;
 
-                String updateActiveQuery = "UPDATE User SET active = 1 WHERE userID = ?";
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateActiveQuery)) {
-                    updateStmt.setInt(1, this.userID);
-                    updateStmt.executeUpdate();
-                }
+        //         String updateActiveQuery = "UPDATE User SET active = 1 WHERE userID = ?";
+        //         try (PreparedStatement updateStmt = conn.prepareStatement(updateActiveQuery)) {
+        //             updateStmt.setInt(1, this.userID);
+        //             updateStmt.executeUpdate();
+        //         }
 
-                System.out.println("Login successful! Welcome, " + this.name + ".");
-            } else {
-                this.active = 0;
-                System.out.println("Invalid email or password.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        //         System.out.println("Login successful! Welcome, " + this.name + ".");
+        //     } else {
+        //         this.active = 0;
+        //         System.out.println("Invalid email or password.");
+        //     }
+        // } catch (SQLException e) {
+        //     e.printStackTrace();
+        // }
+        return true;
     }
 
     // Logout method
-    public void logout(Connection conn) {
+    public boolean logout(Connection conn) {
         if (this.active == 1) {
             this.active = 0;
 
@@ -150,5 +152,7 @@ public class User {
         } else {
             System.out.println("You are not logged in.");
         }
+        return true;
     }
+    
 }
