@@ -136,8 +136,9 @@ project
 └───src
    │   Java files 
 ```
-5. bash```cd src```
-   bash```git clone https://github.com/ShreyankGopal/TrainBookingSystem.git```
+5. ```cd src```
+
+   ```git clone https://github.com/ShreyankGopal/TrainBookingSystem.git```
 
 ## Technologies Used
 
