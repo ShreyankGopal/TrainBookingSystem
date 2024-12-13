@@ -7,7 +7,7 @@ public class Main {
     static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
     static final String DB_URL = "jdbc:mysql://localhost:3306/TrainBookingSystem?useSSL=false";
     static final String USER = "root"; // Add your database username
-    static final String PASSWORD = "Sghu*560"; // Add your database password
+    static final String PASSWORD = ""; // Add your database password
     
     public static void main(String[] args) {
         Connection conn = null;
